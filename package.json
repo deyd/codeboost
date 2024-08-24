@@ -1,0 +1,88 @@
+{
+    "name": "codeboost",
+    "displayName": "CodeBoost",
+    "description": "",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.92.0"
+    },
+    "activationEvents": [],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "codeboost.insertSnippet",
+                "title": "Insert Snippet"
+            }
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "when": "editorFocus",
+                    "command": "codeboost.insertSnippet",
+                    "group": "myGroup@1"
+                }
+            ]
+        },
+        "configuration": {
+            "title": "CodeBoost",
+            "properties": {
+                "codeboost.folderPath": {
+                    "type": "string",
+                    "default": null,
+                    "description": "Path of folder to browse"
+                },
+                "codeboost.mainMarker": {
+                    "type": "string",
+                    "default": "# -- main block -- #",
+                    "description": "Start marker for the main part of the code"
+                },
+                "codeboost.testMarker": {
+                    "type": "string",
+                    "default": "# -- test block -- #",
+                    "description": "End marker for main part of code"
+                },
+                "codeboost.fromMarker": {
+                    "type": "string",
+                    "default": "# -- From -- #",
+                    "description": "Start marker for partial test code"
+                },
+                "codeboost.toMarker": {
+                    "type": "string",
+                    "default": "# -- To -- #",
+                    "description": "End marker for partial test code"
+                },
+                "codeboost.commentMarker": {
+                    "type": "string",
+                    "default": "# ----",
+                    "description": "Comment markers to be deleted when quoting"
+                },
+                "codeboost.lineMarker": {
+                    "type": "string",
+                    "default": "# **",
+                    "description": "Line markers to be deleted when quoting"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint src --ext ts",
+        "test": "vscode-test"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.92.0",
+        "@types/mocha": "^10.0.7",
+        "@types/node": "20.x",
+        "@typescript-eslint/eslint-plugin": "^7.14.1",
+        "@typescript-eslint/parser": "^7.11.0",
+        "eslint": "^8.57.0",
+        "typescript": "^5.4.5",
+        "@vscode/test-cli": "^0.0.9",
+        "@vscode/test-electron": "^2.4.0"
+    },
+    "repository": "Under preperation"
+}
