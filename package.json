@@ -1,6 +1,7 @@
 {
     "name": "codeboost",
     "displayName": "CodeBoost",
+    "publisher": "Hijizou",
     "description": "",
     "version": "0.0.1",
     "engines": {
@@ -68,6 +69,15 @@
                     "type": "string",
                     "default": "# **",
                     "description": "Line markers to be deleted when quoting"
+                }
+            }
+        },
+        "icons": {
+            "my-icon-id": {
+                "description": "my icon",
+                "default": {
+                    "fontPath": "./images/codeboost.webp",
+                    "fontCharacter": "\\E001"
                 }
             }
         }
