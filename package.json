@@ -28,36 +28,43 @@
             "title": "CodeBoost",
             "properties": {
                 "codeboost.folderPath": {
+                    "order": 0,
                     "type": "string",
                     "default": null,
                     "description": "Path of folder to browse"
                 },
                 "codeboost.mainMarker": {
+                    "order": 1,
                     "type": "string",
                     "default": "# -- main block -- #",
                     "description": "Start marker for the main part of the code"
                 },
                 "codeboost.testMarker": {
+                    "order": 2,
                     "type": "string",
                     "default": "# -- test block -- #",
                     "description": "End marker for main part of code"
                 },
                 "codeboost.fromMarker": {
+                    "order": 3,
                     "type": "string",
                     "default": "# -- From -- #",
                     "description": "Start marker for partial test code"
                 },
                 "codeboost.toMarker": {
+                    "order": 4,
                     "type": "string",
                     "default": "# -- To -- #",
                     "description": "End marker for partial test code"
                 },
                 "codeboost.commentMarker": {
+                    "order": 5,
                     "type": "string",
                     "default": "# ----",
                     "description": "Comment markers to be deleted when quoting"
                 },
                 "codeboost.lineMarker": {
+                    "order": 6,
                     "type": "string",
                     "default": "# **",
                     "description": "Line markers to be deleted when quoting"
