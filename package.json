@@ -1,12 +1,15 @@
 {
     "name": "codeboost",
     "displayName": "CodeBoost",
+    "icon": "images/codeboost_icon.webp",
     "publisher": "Hijizou",
-    "description": "",
-    "version": "0.0.1",
+    "version": "1.0.1",
     "engines": {
         "vscode": "^1.92.0"
     },
+    "description": "This extension simplifies the maintenance and usage of snippets.",
+    "categories": ["Snippets"],
+    "keywords": ["competitive programming", "snippets"],
     "activationEvents": [],
     "main": "./out/extension.js",
     "contributes": {
@@ -58,17 +61,17 @@
                     "default": "# -- To -- #",
                     "description": "End marker for partial test code"
                 },
-                "codeboost.commentMarker": {
+                "codeboost.lineMarker": {
                     "order": 5,
                     "type": "string",
                     "default": "# ----",
-                    "description": "Comment markers to be deleted when quoting"
+                    "description": "Line markers to be deleted when quoting"
                 },
-                "codeboost.lineMarker": {
+                "codeboost.commentMarker": {
                     "order": 6,
                     "type": "string",
-                    "default": "# **",
-                    "description": "Line markers to be deleted when quoting"
+                    "default": "# ----",
+                    "description": "Comment markers to be deleted when quoting"
                 }
             }
         },
