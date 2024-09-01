@@ -3,13 +3,25 @@
 import { access } from 'fs';
 import * as vscode from 'vscode';
 
+/**
+ * ファイル名のリストを取得する
+ * @param directory_path 
+ * @returns 
+ */
 async function retrieveFilenames(directory_path: string) {
     // ファイル名のリストを取得する
-
+    
+    // 取得
     const directory = vscode.Uri.file(directory_path);
     const fileinfos = await vscode.workspace.fs.readDirectory(directory);
+
+    // ファイル名のみに変換
     const filenames: string[] = [];
-    fileinfos.forEach(name_and_type => { filenames.push(name_and_type[0]); });
+    fileinfos.forEach(name_and_type => {
+        if (name_and_type[1] === vscode.FileType.File) {  // ファイルのみ（フォルダは除外）
+            filenames.push(name_and_type[0]);
+        }
+    });
 
     return filenames;
 }
@@ -89,14 +101,15 @@ async function insertSnippet() {
 
     const filenames = await retrieveFilenames(directory_path);  // 変換対象のファイルをリスト化する
 
-    const item = await vscode.window.showQuickPick(filenames, { placeHolder: 'Please Select an item', canPickMany: false });  // ファイルの選択をする
+    // ファイル選択
+    const item = await vscode.window.showQuickPick(filenames, { placeHolder: 'Please Select an item', canPickMany: false });
 
+    // ファイル読み込み
     if (item === undefined) {
         vscode.window.showWarningMessage("No item selected");
         // vscode.window.showWarningMessage(directory_path + " not found.");
         return;
     }
-
     const filepath = directory_path + '//' + item;
 
     // ファイルを読み込む
