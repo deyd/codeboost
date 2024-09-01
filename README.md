@@ -1,9 +1,16 @@
-# 
+作成中のコードに、自作コードファイルを組み込む機能
 
 A feature to incorporate custom code files into the code being developed.
 
+- VSCodeにスニペット機能はありますが、長いコードを登録するのには面倒。変換サイトを使っても、修正するたびに変換作業の必要があります。
+- 一方、カスタムコードを自分のフォルダに置いても、コピー＆ペーストするのは少し面倒です。また、修正やコードの検証のたびに、検証用のコードを付け加えて、修正後に消す、という作業も発生します。
+
 - The VSCode snippet feature is cumbersome for registering long code. Even if you use a conversion site, you need to convert it every time you make corrections.
 - Even if you place your custom code in your own folder, it’s a bit troublesome to copy and paste. This also causes back-and-forth when making corrections or verifying the code.
+
+これを解決するための拡張機能です。
+
+This extension solves the problems.
 
 ## 機能 / Features
 
@@ -87,14 +94,4 @@ These settings can be customized by writing codeboost.* in the settings.json fil
 ## Known Issues
 
 * `*` がコメント中でも使えない（かもしれない）
-
-## Release Notes
-
-### 1.0.1
-- デフォルトのマーカーの名称を一部変更
-- 説明修正
-
-### 1.0.0
-
-Initial release of ...
 
