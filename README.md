@@ -53,6 +53,11 @@ This is the default setting. Initially, it assumes Python files (commented out w
 
 The content of the snippet file will be pasted with the header and footer removed.
 
+### マーカーを挿入する / Insert Markers
+
+- コードの作成中に、カーソルが挿入したい場所にある状態で、右クリックメニューから 'Insert Markers' を呼び出します / While creating code, with the cursor at the desired insertion point, call ‘Insert Markers’ from the right-click menu.
+
+
 ## 拡張設定 / Extension Settings
 
 ５種類の削除方法と、６種類の削除マーカがあります。
@@ -73,14 +78,14 @@ There are five types of deletion methods (with six deletion markers).
 
 - **テストで使用するコードの削除 Removing sections within the main code that are used for testing purposes**
   - キー key : `codeboost.fromMarker`, `codeboost.toMarker`
-  - 初期マーカー default marker : `# -- From -- #`, `# -- To -- #`
+  - 初期マーカー default marker : `# -- tmp From -- #`, `# -- tmp To -- #`
   - メインブロック中で、本来動作には不要なコードの場所を示します which signify that the code between these markers is used for test outputs or required by the test problem.
   - つまり、このマーカーの行の間が削除されます In other words, the code between these markers will be removed.
 
 - **行の削除 Removing entire lines of code**
   - キー key : `codeboost.lineMarker`
   - 初期マーカー default marker : `# ----`
-  - その行だけ消したい場合に使います he default marker is `# == `, which indicates that both the comment and the code should be excluded.
+  - その行だけ消したい場合に使います The default marker is `# ---- `, which indicates that both the comment and the code should be excluded.
 
 - **コメントの削除 Removing only comments while keeping the code intact**
   - キー key : `codeboost.commentMarker`

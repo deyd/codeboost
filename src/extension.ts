@@ -8,9 +8,10 @@ import * as vscode from 'vscode';
  * @param directory_path 
  * @returns 
  */
+
 async function retrieveFilenames(directory_path: string) {
     // ファイル名のリストを取得する
-    
+
     // 取得
     const directory = vscode.Uri.file(directory_path);
     const fileinfos = await vscode.workspace.fs.readDirectory(directory);
@@ -81,6 +82,7 @@ function insert(text: string) {
 
 async function insertSnippet() {
 
+    // 設定の読み込み
     const configuration = vscode.workspace.getConfiguration("codeboost");
 
     let directory_path: string = "./";
@@ -92,10 +94,10 @@ async function insertSnippet() {
     // マーカー設定
     const header_marker: string = configuration.get<string>("mainMarker") || "# -- main block -- #";
     const footer_marker: string = configuration.get<string>("testMarker") || "# -- test block -- #";
-    const from_marker: string = configuration.get<string>("fromMarker") || "# -- From -- #";
-    const to_marker: string = configuration.get<string>("toMarker") || "# -- To -- #";;
-    const comment_marker: string = configuration.get<string>("commentMarker") || "# == ";
-    const line_marker: string = configuration.get<string>("lineMarker") || "# ** ";
+    const from_marker: string = configuration.get<string>("fromMarker") || "# -- tmp From -- #";
+    const to_marker: string = configuration.get<string>("toMarker") || "# -- tmp To -- #";;
+    const comment_marker: string = configuration.get<string>("commentMarker") || "# ---- ";
+    const line_marker: string = configuration.get<string>("lineMarker") || "# == ";
 
     // vscode.window.showInformationMessage(directory_path);
 
@@ -124,19 +126,76 @@ async function insertSnippet() {
     text = removeBetweenMarkers(text, from_marker, to_marker);
 
     text = removeFromMarkerToEndOfLine(text, comment_marker);  // 削除コメント
-    console.log(text);
+    // console.log(text);
     text = removeLinesWithMarker(text, line_marker);  // 行ごと削除
-    console.log(text);
+    // console.log(text);
 
     insert(text);
 
 }
 
+
+function insertMainMarker() {
+    // マーカーを挿入する
+
+    // 0. 設定の読み込み
+    const configuration = vscode.workspace.getConfiguration("codeboost");
+
+    // 1. 自分で設定した MainMarker を取得する
+    const header_marker: string = configuration.get<string>("mainMarker") || "# -- main block -- #";
+    // const header_marker: string = "# -- main block -- #";
+
+    // 2. MainMarker を挿入する
+    insert(header_marker);  // カーソル位置に挿入する関数
+
+}
+
+function insertTestMarker() {
+    // テストマーカーを挿入する
+
+    // 0. 設定の読み込み
+    const configuration = vscode.workspace.getConfiguration("codeboost");
+
+    // 1. 自分で設定した TestMarker を取得する
+    const footer_marker: string = configuration.get<string>("testMarker") || "# -- test block -- #";
+
+    // 2. TestMarker を挿入する
+    insert(footer_marker);  // カーソル位置に挿入する関数
+
+}
+
+function insertLineMarker() {
+    // 行マーカーを挿入する
+    const configuration = vscode.workspace.getConfiguration("codeboost");
+
+    const line_marker: string = configuration.get<string>("lineMarker") || "# ---- ";
+
+    insert(line_marker);  // カーソル位置に挿入する関数
+}
+
+function insertCommentMarker() {
+    // コメントマーカーを挿入する
+    const configuration = vscode.workspace.getConfiguration("codeboost");
+
+    const comment_marker: string = configuration.get<string>("CommentMarker") || "# == ";
+
+    insert(comment_marker);  // カーソル位置に挿入する関数
+}
+
 export function activate(context: vscode.ExtensionContext) {
 
     const disposable = vscode.commands.registerCommand('codeboost.insertSnippet', insertSnippet);  // 登録
+    const disposable_insertMainMarker = vscode.commands.registerCommand('codeboost.insertMainMarker', insertMainMarker);  // 登録
+    const disposable_insertTestMarker = vscode.commands.registerCommand('codeboost.insertTestMarker', insertTestMarker);  // 登録
+    const disposable_insertLineMarker = vscode.commands.registerCommand('codeboost.insertLineMarker', insertLineMarker);  // 登録
+    const disposable_insertCommentMarker = vscode.commands.registerCommand('codeboost.insertCommentMarker', insertCommentMarker);  // 登録
 
-    context.subscriptions.push(disposable);  // リソース解放（の準備）
+    // リソース解放（の準備）
+    context.subscriptions.push(disposable);
+    context.subscriptions.push(disposable_insertMainMarker);
+    context.subscriptions.push(disposable_insertTestMarker);
+    context.subscriptions.push(disposable_insertLineMarker);
+    context.subscriptions.push(disposable_insertCommentMarker);
 }
 
 // This method is called when your extension is deactivated

@@ -3,20 +3,55 @@
     "displayName": "CodeBoost",
     "icon": "images/codeboost_icon.webp",
     "publisher": "Hijizou",
-    "version": "1.0.2",
+    "version": "1.1.0",
     "engines": {
         "vscode": "^1.92.0"
     },
     "description": "This extension simplifies the maintenance and usage of snippets.",
-    "categories": ["Snippets"],
-    "keywords": ["competitive programming", "snippets"],
+    "categories": [
+        "Snippets"
+    ],
+    "keywords": [
+        "competitive programming",
+        "snippets"
+    ],
     "activationEvents": [],
     "main": "./out/extension.js",
     "contributes": {
+        "submenus": [
+            {
+                "id": "codeboost.submenu",
+                "label": "Insert Markers"
+            }
+        ],
         "commands": [
             {
                 "command": "codeboost.insertSnippet",
                 "title": "Insert Snippet"
+            },
+            {
+                "command": "codeboost.insertMainMarker",
+                "title": "Insert Main Marker"
+            },
+            {
+                "command": "codeboost.insertTestMarker",
+                "title": "Insert Test Marker"
+            },
+            {
+                "command": "codeboost.insertFromMarker",
+                "title": "* Insert From Marker"
+            },
+            {
+                "command": "codeboost.insertToMarker",
+                "title": "* Insert To Marker"
+            },
+            {
+                "command": "codeboost.insertLineMarker",
+                "title": "Insert Line Marker"
+            },
+            {
+                "command": "codeboost.insertCommentMarker",
+                "title": "Insert Comment Marker"
             }
         ],
         "menus": {
@@ -25,6 +60,29 @@
                     "when": "editorFocus",
                     "command": "codeboost.insertSnippet",
                     "group": "myGroup@1"
+                },
+                {
+                    "when": "editorFocus",
+                    "submenu": "codeboost.submenu",
+                    "group": "myGroup@2"
+                }
+            ],
+            "codeboost.submenu": [
+                {
+                    "command": "codeboost.insertMainMarker",
+                    "group": "myGroup@1"
+                },
+                {
+                    "command": "codeboost.insertTestMarker",
+                    "group": "myGroup@2"
+                },
+                {
+                    "command": "codeboost.insertLineMarker",
+                    "group": "myGroup@3"
+                },
+                {
+                    "command": "codeboost.insertCommentMarker",
+                    "group": "myGroup@4"
                 }
             ]
         },
@@ -52,13 +110,13 @@
                 "codeboost.fromMarker": {
                     "order": 3,
                     "type": "string",
-                    "default": "# -- From -- #",
+                    "default": "# -- tmp From -- #",
                     "description": "Start marker for partial test code"
                 },
                 "codeboost.toMarker": {
                     "order": 4,
                     "type": "string",
-                    "default": "# -- To -- #",
+                    "default": "# -- tmp To -- #",
                     "description": "End marker for partial test code"
                 },
                 "codeboost.lineMarker": {

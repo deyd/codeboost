@@ -87,6 +87,7 @@ function insert(text) {
     console.log("inserted.");
 }
 async function insertSnippet() {
+    // 設定の読み込み
     const configuration = vscode.workspace.getConfiguration("codeboost");
     let directory_path = "./";
     if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
@@ -96,11 +97,11 @@ async function insertSnippet() {
     // マーカー設定
     const header_marker = configuration.get("mainMarker") || "# -- main block -- #";
     const footer_marker = configuration.get("testMarker") || "# -- test block -- #";
-    const from_marker = configuration.get("fromMarker") || "# -- From -- #";
-    const to_marker = configuration.get("toMarker") || "# -- To -- #";
+    const from_marker = configuration.get("fromMarker") || "# -- tmp From -- #";
+    const to_marker = configuration.get("toMarker") || "# -- tmp To -- #";
     ;
-    const comment_marker = configuration.get("commentMarker") || "# == ";
-    const line_marker = configuration.get("lineMarker") || "# ** ";
+    const comment_marker = configuration.get("commentMarker") || "# ---- ";
+    const line_marker = configuration.get("lineMarker") || "# == ";
     // vscode.window.showInformationMessage(directory_path);
     const filenames = await retrieveFilenames(directory_path); // 変換対象のファイルをリスト化する
     // ファイル選択
@@ -121,14 +122,54 @@ async function insertSnippet() {
     // 途中のテストコードも取り除く
     text = removeBetweenMarkers(text, from_marker, to_marker);
     text = removeFromMarkerToEndOfLine(text, comment_marker); // 削除コメント
-    console.log(text);
+    // console.log(text);
     text = removeLinesWithMarker(text, line_marker); // 行ごと削除
-    console.log(text);
+    // console.log(text);
     insert(text);
+}
+function insertMainMarker() {
+    // マーカーを挿入する
+    // 0. 設定の読み込み
+    const configuration = vscode.workspace.getConfiguration("codeboost");
+    // 1. 自分で設定した MainMarker を取得する
+    const header_marker = configuration.get("mainMarker") || "# -- main block -- #";
+    // const header_marker: string = "# -- main block -- #";
+    // 2. MainMarker を挿入する
+    insert(header_marker); // カーソル位置に挿入する関数
+}
+function insertTestMarker() {
+    // テストマーカーを挿入する
+    // 0. 設定の読み込み
+    const configuration = vscode.workspace.getConfiguration("codeboost");
+    // 1. 自分で設定した TestMarker を取得する
+    const footer_marker = configuration.get("testMarker") || "# -- test block -- #";
+    // 2. TestMarker を挿入する
+    insert(footer_marker); // カーソル位置に挿入する関数
+}
+function insertLineMarker() {
+    // 行マーカーを挿入する
+    const configuration = vscode.workspace.getConfiguration("codeboost");
+    const line_marker = configuration.get("lineMarker") || "# ---- ";
+    insert(line_marker); // カーソル位置に挿入する関数
+}
+function insertCommentMarker() {
+    // コメントマーカーを挿入する
+    const configuration = vscode.workspace.getConfiguration("codeboost");
+    const comment_marker = configuration.get("CommentMarker") || "# == ";
+    insert(comment_marker); // カーソル位置に挿入する関数
 }
 function activate(context) {
     const disposable = vscode.commands.registerCommand('codeboost.insertSnippet', insertSnippet); // 登録
-    context.subscriptions.push(disposable); // リソース解放（の準備）
+    const disposable_insertMainMarker = vscode.commands.registerCommand('codeboost.insertMainMarker', insertMainMarker); // 登録
+    const disposable_insertTestMarker = vscode.commands.registerCommand('codeboost.insertTestMarker', insertTestMarker); // 登録
+    const disposable_insertLineMarker = vscode.commands.registerCommand('codeboost.insertLineMarker', insertLineMarker); // 登録
+    const disposable_insertCommentMarker = vscode.commands.registerCommand('codeboost.insertCommentMarker', insertCommentMarker); // 登録
+    // リソース解放（の準備）
+    context.subscriptions.push(disposable);
+    context.subscriptions.push(disposable_insertMainMarker);
+    context.subscriptions.push(disposable_insertTestMarker);
+    context.subscriptions.push(disposable_insertLineMarker);
+    context.subscriptions.push(disposable_insertCommentMarker);
 }
 // This method is called when your extension is deactivated
 function deactivate() { }
