@@ -3,7 +3,7 @@
     "displayName": "CodeBoost",
     "icon": "images/codeboost_icon.webp",
     "publisher": "Hijizou",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "engines": {
         "vscode": "^1.92.0"
     },
@@ -38,12 +38,8 @@
                 "title": "Insert Test Marker"
             },
             {
-                "command": "codeboost.insertFromMarker",
-                "title": "* Insert From Marker"
-            },
-            {
-                "command": "codeboost.insertToMarker",
-                "title": "* Insert To Marker"
+                "command": "codeboost.insertFromToMarker",
+                "title": "Insert From / To Marker"
             },
             {
                 "command": "codeboost.insertLineMarker",
@@ -77,12 +73,16 @@
                     "group": "myGroup@2"
                 },
                 {
-                    "command": "codeboost.insertLineMarker",
+                    "command": "codeboost.insertFromToMarker",
                     "group": "myGroup@3"
                 },
                 {
-                    "command": "codeboost.insertCommentMarker",
+                    "command": "codeboost.insertLineMarker",
                     "group": "myGroup@4"
+                },
+                {
+                    "command": "codeboost.insertCommentMarker",
+                    "group": "myGroup@5"
                 }
             ]
         },

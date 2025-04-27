@@ -80,6 +80,7 @@ function insert(text) {
     // エディタ書き込み
     if (editor) {
         let anchor = editor.selection.anchor; // 現在のアンカー位置を取得
+        // selection.active ではだめなのか？
         editor.edit(editBuilder => {
             editBuilder.insert(anchor, text);
         });
@@ -133,7 +134,6 @@ function insertMainMarker() {
     const configuration = vscode.workspace.getConfiguration("codeboost");
     // 1. 自分で設定した MainMarker を取得する
     const header_marker = configuration.get("mainMarker") || "# -- main block -- #";
-    // const header_marker: string = "# -- main block -- #";
     // 2. MainMarker を挿入する
     insert(header_marker); // カーソル位置に挿入する関数
 }
@@ -158,18 +158,44 @@ function insertCommentMarker() {
     const comment_marker = configuration.get("CommentMarker") || "# == ";
     insert(comment_marker); // カーソル位置に挿入する関数
 }
+function insertFromToMarker() {
+    // 行マーカーを挿入する
+    const configuration = vscode.workspace.getConfiguration("codeboost");
+    const from_marker = configuration.get("FromMarker") || "# -- tmp From -- #";
+    const to_marker = configuration.get("ToMarker") || "# -- tmp To -- #";
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        vscode.window.showErrorMessage('エディタが開かれていません');
+        return;
+    }
+    const selection = editor.selection;
+    if (selection.isEmpty) {
+        vscode.window.showErrorMessage('範囲が選択されていません\nSelection is empty');
+        return;
+    }
+    editor.edit(editBuilder => {
+        const startLine = selection.start.line;
+        const endLine = selection.end.line;
+        // 選択範囲の1行下に [END] を挿入（ズレ防止に先に挿入する）
+        editBuilder.insert(new vscode.Position(endLine + 1, 0), to_marker + '\n');
+        // 選択範囲の1行上に [START] を挿入
+        editBuilder.insert(new vscode.Position(startLine, 0), from_marker + '\n');
+    });
+}
 function activate(context) {
     const disposable = vscode.commands.registerCommand('codeboost.insertSnippet', insertSnippet); // 登録
     const disposable_insertMainMarker = vscode.commands.registerCommand('codeboost.insertMainMarker', insertMainMarker); // 登録
     const disposable_insertTestMarker = vscode.commands.registerCommand('codeboost.insertTestMarker', insertTestMarker); // 登録
     const disposable_insertLineMarker = vscode.commands.registerCommand('codeboost.insertLineMarker', insertLineMarker); // 登録
     const disposable_insertCommentMarker = vscode.commands.registerCommand('codeboost.insertCommentMarker', insertCommentMarker); // 登録
+    const disposable_insertFromToMarker = vscode.commands.registerCommand('codeboost.insertFromToMarker', insertFromToMarker); // 登録
     // リソース解放（の準備）
     context.subscriptions.push(disposable);
     context.subscriptions.push(disposable_insertMainMarker);
     context.subscriptions.push(disposable_insertTestMarker);
     context.subscriptions.push(disposable_insertLineMarker);
     context.subscriptions.push(disposable_insertCommentMarker);
+    context.subscriptions.push(disposable_insertFromToMarker);
 }
 // This method is called when your extension is deactivated
 function deactivate() { }
