@@ -2,6 +2,10 @@
 
 All notable changes to the "codeboost" extension will be documented in this file.
 
+## [1.2.1]
+- 行削除 （初期マーカー : # ----） を実行時に、改行が残る不具合を修正
+- Fixed a bug where a newline remained when executing line deletion (initial marker: # ----).
+
 ## [1.2] 2025-04-27
 - 登録した From / To をコンテクストメニューで呼び出す機能を追加（テキスト選択状態でのみ動作）
 - Added a feature to call the registered From/To via the context menu (works only when text is selected).

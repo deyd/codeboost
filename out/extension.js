@@ -63,14 +63,14 @@ function removeBetweenMarkers(text, fromMarker, toMarker) {
 function removeFromMarkerToEndOfLine(text, marker) {
     // 正規表現で、markerから行末（改行文字含む）までをマッチさせる
     // Python などではインデントが崩れるため、改行文字列は削除しない
-    console.log(marker);
+    // console.log("remveFromMarkerToEndOfLine");
+    // console.log(marker);
     const regex = new RegExp(`\s*${marker}.*`, 'g');
     return text.replace(regex, '');
 }
 function removeLinesWithMarker(text, marker) {
-    // 正規表現で指定したキーワードが含まれる行を削除
-    const regex = new RegExp(`^.*${marker}.*$`, 'gm');
-    // return text.replace(regex, '').replace(/^\s*[\r\n]/gm, '');
+    // 正規表現で指定したキーワードが含まれる行を改行ごと削除
+    const regex = new RegExp(`^.*${marker}.*(?:\r?\n|$)`, 'gm');
     return text.replace(regex, '');
 }
 function insert(text) {
@@ -101,8 +101,8 @@ async function insertSnippet() {
     const from_marker = configuration.get("fromMarker") || "# -- tmp From -- #";
     const to_marker = configuration.get("toMarker") || "# -- tmp To -- #";
     ;
-    const comment_marker = configuration.get("commentMarker") || "# ---- ";
-    const line_marker = configuration.get("lineMarker") || "# == ";
+    const comment_marker = configuration.get("commentMarker") || "# == ";
+    const line_marker = configuration.get("lineMarker") || "# ---- ";
     // vscode.window.showInformationMessage(directory_path);
     const filenames = await retrieveFilenames(directory_path); // 変換対象のファイルをリスト化する
     // ファイル選択
@@ -120,12 +120,14 @@ async function insertSnippet() {
     let text = Buffer.from(blob).toString(); // デフォルトはutf-8
     text = removeUntilMarker(text, header_marker);
     text = removeFromMarker(text, footer_marker);
-    // 途中のテストコードも取り除く
+    // 途中のテストコードも取り除く : 初期設定 # -- tmp From -- #
     text = removeBetweenMarkers(text, from_marker, to_marker);
-    text = removeFromMarkerToEndOfLine(text, comment_marker); // 削除コメント
-    // console.log(text);
+    // 途中のコード行ごと取り除きたいもの : 初期設定 # ----
     text = removeLinesWithMarker(text, line_marker); // 行ごと削除
-    // console.log(text);
+    console.log(text);
+    // コメント部分だけを取り除きたいもの : 初期設定 # ==
+    text = removeFromMarkerToEndOfLine(text, comment_marker); // 削除コメント
+    console.log(text);
     insert(text);
 }
 function insertMainMarker() {
