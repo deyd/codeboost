@@ -1,9 +1,9 @@
 {
     "name": "codeboost",
     "displayName": "CodeBoost",
-    "icon": "images/codeboost_icon.webp",
+    "icon": "images/codeboost_icon.png",
     "publisher": "Hijizou",
-    "version": "1.2.1",
+    "version": "1.3.0",
     "engines": {
         "vscode": "^1.92.0"
     },
@@ -95,50 +95,72 @@
                     "default": null,
                     "description": "Path of folder to browse"
                 },
-                "codeboost.mainMarker": {
+                "codeboost.languages": {
                     "order": 1,
+                    "type": "object",
+                    "default": {
+                        "python": {
+                            "extensions": [".py"],
+                            "comment": "#"
+                        },
+                        "cpp": {
+                            "extensions": [".cpp", ".cc", ".cxx", ".h", ".hpp", ".hh", ".hxx"],
+                            "comment": "//"
+                        }
+                    },
+                    "description": "Language profiles. Files with extensions in the same profile share comment markers and snippet candidates.",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "extensions": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "comment": {
+                                "type": "string"
+                            }
+                        },
+                        "required": ["extensions", "comment"],
+                        "additionalProperties": false
+                    }
+                },
+                "codeboost.mainMarker": {
+                    "order": 2,
                     "type": "string",
                     "default": "# -- main block -- #",
                     "description": "Start marker for the main part of the code"
                 },
                 "codeboost.testMarker": {
-                    "order": 2,
+                    "order": 3,
                     "type": "string",
                     "default": "# -- test block -- #",
                     "description": "End marker for main part of code"
                 },
                 "codeboost.fromMarker": {
-                    "order": 3,
+                    "order": 4,
                     "type": "string",
                     "default": "# -- tmp From -- #",
                     "description": "Start marker for partial test code"
                 },
                 "codeboost.toMarker": {
-                    "order": 4,
+                    "order": 5,
                     "type": "string",
                     "default": "# -- tmp To -- #",
                     "description": "End marker for partial test code"
                 },
                 "codeboost.lineMarker": {
-                    "order": 5,
+                    "order": 6,
                     "type": "string",
                     "default": "# ----",
                     "description": "Line markers to be deleted when quoting"
                 },
                 "codeboost.commentMarker": {
-                    "order": 6,
+                    "order": 7,
                     "type": "string",
                     "default": "# ----",
                     "description": "Comment markers to be deleted when quoting"
-                }
-            }
-        },
-        "icons": {
-            "my-icon-id": {
-                "description": "my icon",
-                "default": {
-                    "fontPath": "./images/codeboost.webp",
-                    "fontCharacter": "\\E001"
                 }
             }
         }
@@ -162,5 +184,8 @@
         "@vscode/test-cli": "^0.0.9",
         "@vscode/test-electron": "^2.4.0"
     },
-    "repository": "Under preperation"
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/deyd/codeboost.git"
+    }
 }

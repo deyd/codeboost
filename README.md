@@ -35,13 +35,31 @@ This extension solves the problems.
 
 Set the path of the folder containing the snippet files you want to use to codeboost.folderPath.
 
+#### 言語ごとのコメント記法 / Language Profiles
+`codeboost.languages` で、拡張子のグループと行コメント記号を設定できます。同じプロファイルに登録した拡張子は、スニペット候補として相互に表示されます。初期設定では Python の `.py` と C++ の `.cpp`, `.cc`, `.cxx`, `.h`, `.hpp`, `.hh`, `.hxx` が登録されています。
+
+```json
+"codeboost.languages": {
+  "python": {
+    "extensions": [".py"],
+    "comment": "#"
+  },
+  "cpp": {
+    "extensions": [".cpp", ".cc", ".cxx", ".h", ".hpp", ".hh", ".hxx"],
+    "comment": "//"
+  }
+}
+```
+
+`comment` には行コメント記号を指定します。マーカーはこの記号を使って自動生成されます（例: `// -- main block -- //`）。別の言語を追加する場合は、その言語のプロファイルを登録してください。どのプロファイルにも登録されていない拡張子では、従来の `codeboost.mainMarker` などのマーカー設定を使い、候補は作業中ファイルと同じ拡張子に限定されます。
+
 #### スニペットファイル / Snippet Files
-デフォルトでの設定です。 初期設定では、Python ファイルを前提にしています。（`#` でのコメントアウト）
+対象ファイルに対応するプロファイルの行コメント記号でマーカーを記述します。Python の既定プロファイルでは `#`、C++ の既定プロファイルでは `//` を使用します。
 
 This is the default setting. Initially, it assumes Python files (commented out with #).
 
-- 引用時に削除したいヘッダ部のあと（残したい部分の前）に `# -- main block -- #` を挿入します / Insert # -- main block -- # after the header section you want to remove (before the part you want to keep).
-- 引用時に削除したいフッタ部のまえ（残したい部分の後ろ）に `# -- test block -- #` を挿入します / Insert # -- test block -- # before the footer section you want to remove (after the part you want to keep).
+- 引用時に削除したいヘッダ部のあと（残したい部分の前）に `-- main block --` を囲んだマーカーを挿入します / Insert the generated `main block` marker after the header section you want to remove.
+- 引用時に削除したいフッタ部のまえ（残したい部分の後ろ）に `-- test block --` を囲んだマーカーを挿入します / Insert the generated `test block` marker before the footer section you want to remove.
 
 ### コードを呼び出す / Calling Code
 
@@ -60,7 +78,7 @@ The content of the snippet file will be pasted with the header and footer remove
 
 ## 拡張設定 / Extension Settings
 
-５種類の削除方法と、６種類の削除マーカがあります。
+５種類の削除方法と、６種類の削除マーカがあります。登録済み言語では、マーカー挿入コマンドも作業中ファイルの言語プロファイルに合わせた行コメント記号を使用します。
 There are five types of deletion methods (with six deletion markers).
 
 - **ヘッダ部（動作テスト用の変数定義など）の削除 Removing variable definitions used as prerequisites or in test code**
@@ -95,8 +113,10 @@ There are five types of deletion methods (with six deletion markers).
 これらの設定は、設定にて変更して下さい。
 These settings can be customized by writing codeboost.* in the settings.json file.
 
+登録済み言語では、これらのマーカー設定ではなく、プロファイルの行コメント記号から生成したマーカーが使われます。これらの設定は未登録の拡張子で使われます。
+For registered languages, markers are generated from the profile's line-comment syntax; these settings are used for unregistered extensions.
+
 
 ## Known Issues
 
-* `*` がコメント中でも使えない（かもしれない）
-
+* 行コメントのみ対応しています。ブロックコメントには対応していません。 / Only line comments are supported; block comments are not.

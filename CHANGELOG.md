@@ -2,6 +2,14 @@
 
 All notable changes to the "codeboost" extension will be documented in this file.
 
+## [1.3.0]
+- 複数のプログラミング言語に対応
+  - 作業中のファイルの言語に応じてマーカー（行コメント記号）を自動生成
+  - 未登録の拡張子では、従来通りのマーカー設定が使用される
+- For registered languages, markers are generated from the profile's line-comment syntax; these settings are used for unregistered extensions.
+
+
+
 ## [1.2.1]
 - 行削除 （初期マーカー : # ----） を実行時に、改行が残る不具合を修正
 - Fixed a bug where a newline remained when executing line deletion (initial marker: # ----).

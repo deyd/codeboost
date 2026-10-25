@@ -25,13 +25,57 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
+// The module 'vscode' contains the VS Code extensibility API
+// Import the module and reference it with the alias vscode in your code below
+const path_1 = require("path");
 const vscode = __importStar(require("vscode"));
-/**
- * ファイル名のリストを取得する
- * @param directory_path
- * @returns
- */
-async function retrieveFilenames(directory_path) {
+function normalizeExtension(extension) {
+    const normalized = extension.toLowerCase();
+    return normalized.startsWith('.') ? normalized : `.${normalized}`;
+}
+function getLanguageProfile(configuration, extension) {
+    const languages = configuration.get('languages', {});
+    const normalizedExtension = normalizeExtension(extension);
+    for (const profile of Object.values(languages)) {
+        if (profile &&
+            Array.isArray(profile.extensions) &&
+            profile.extensions.every((value) => typeof value === 'string') &&
+            typeof profile.comment === 'string' &&
+            profile.comment.length > 0) {
+            const extensions = profile.extensions.map(normalizeExtension);
+            if (extensions.includes(normalizedExtension)) {
+                return { extensions, comment: profile.comment };
+            }
+        }
+    }
+    return undefined;
+}
+function getMarkers(configuration, extension) {
+    const profile = extension ? getLanguageProfile(configuration, extension) : undefined;
+    if (profile) {
+        const { comment } = profile;
+        return {
+            main: `${comment} -- main block -- ${comment}`,
+            test: `${comment} -- test block -- ${comment}`,
+            from: `${comment} -- tmp From -- ${comment}`,
+            to: `${comment} -- tmp To -- ${comment}`,
+            line: `${comment} ---- `,
+            comment: `${comment} == `
+        };
+    }
+    return {
+        main: configuration.get('mainMarker') || '# -- main block -- #',
+        test: configuration.get('testMarker') || '# -- test block -- #',
+        from: configuration.get('fromMarker') || '# -- tmp From -- #',
+        to: configuration.get('toMarker') || '# -- tmp To -- #',
+        line: configuration.get('lineMarker') || '# ---- ',
+        comment: configuration.get('commentMarker') || '# == '
+    };
+}
+function escapeRegExp(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+async function retrieveFilenames(directory_path, extensions) {
     // ファイル名のリストを取得する
     // 取得
     const directory = vscode.Uri.file(directory_path);
@@ -40,24 +84,26 @@ async function retrieveFilenames(directory_path) {
     const filenames = [];
     fileinfos.forEach(name_and_type => {
         if (name_and_type[1] === vscode.FileType.File) { // ファイルのみ（フォルダは除外）
-            filenames.push(name_and_type[0]);
+            if (extensions.includes(normalizeExtension((0, path_1.extname)(name_and_type[0])))) {
+                filenames.push(name_and_type[0]);
+            }
         }
     });
     return filenames;
 }
 function removeUntilMarker(text, marker) {
     // 正規表現で、文字列の先頭から指定した単語が出てきた行の文末までをマッチさせる
-    const regex = new RegExp(`^[\\s\\S]*?${marker}[\\s\\S].*\\r?\\n`, 'm');
+    const regex = new RegExp(`^[\\s\\S]*?^[^\\r\\n]*${escapeRegExp(marker)}[^\\r\\n]*(?:\\r?\\n|$)`, 'm');
     return text.replace(regex, '');
 }
 function removeFromMarker(text, marker) {
     // 正規表現で、指定した単語が出てきた行の行頭から文字列の最後までをマッチさせる
-    const regex = new RegExp(`^.*${marker}[\\s\\S]*$`, 'm');
+    const regex = new RegExp(`^.*${escapeRegExp(marker)}[\\s\\S]*$`, 'm');
     return text.replace(regex, '');
 }
 function removeBetweenMarkers(text, fromMarker, toMarker) {
     // 正規表現で、fromMarkerが出てきた行の行頭からtoMarkerが出てきた行の最後までをマッチさせる
-    const regex = new RegExp(`^.*${fromMarker}[\\s\\S]*?${toMarker}.*\\r?\\n`, 'gm');
+    const regex = new RegExp(`^.*${escapeRegExp(fromMarker)}[\\s\\S]*?${escapeRegExp(toMarker)}.*\\r?\\n`, 'gm');
     return text.replace(regex, '');
 }
 function removeFromMarkerToEndOfLine(text, marker) {
@@ -65,18 +111,18 @@ function removeFromMarkerToEndOfLine(text, marker) {
     // Python などではインデントが崩れるため、改行文字列は削除しない
     // console.log("remveFromMarkerToEndOfLine");
     // console.log(marker);
-    const regex = new RegExp(`\s*${marker}.*`, 'g');
+    const regex = new RegExp(`[ \\t]*${escapeRegExp(marker)}.*`, 'g');
     return text.replace(regex, '');
 }
 function removeLinesWithMarker(text, marker) {
     // 正規表現で指定したキーワードが含まれる行を改行ごと削除
-    const regex = new RegExp(`^.*${marker}.*(?:\r?\n|$)`, 'gm');
+    const regex = new RegExp(`^.*${escapeRegExp(marker)}.*(?:\\r?\\n|$)`, 'gm');
     return text.replace(regex, '');
 }
-function insert(text) {
+function insert(text, targetEditor) {
     // text を現在のカーソル位置に挿入する
     console.log("insert code");
-    const editor = vscode.window.activeTextEditor; // 使用中のエディタオブジェクト取得
+    const editor = targetEditor || vscode.window.activeTextEditor; // 使用中のエディタオブジェクト取得
     // エディタ書き込み
     if (editor) {
         let anchor = editor.selection.anchor; // 現在のアンカー位置を取得
@@ -87,24 +133,40 @@ function insert(text) {
     }
     console.log("inserted.");
 }
+/**
+ * 選択したスニペットファイルから不要な領域を取り除き、エディターに挿入します。
+ */
 async function insertSnippet() {
+    // 作業中のエディタオブジェクトを取得
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        vscode.window.showErrorMessage('エディタが開かれていません');
+        return;
+    }
+    // ファイルの拡張子を取得
+    const extension = (0, path_1.extname)(editor.document.fileName).toLowerCase();
+    if (!extension) {
+        vscode.window.showWarningMessage('作業中のファイルの拡張子を取得できません');
+        return;
+    }
     // 設定の読み込み
     const configuration = vscode.workspace.getConfiguration("codeboost");
+    // 作業ディレクトリの取得
     let directory_path = "./";
     if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
         directory_path = vscode.workspace.workspaceFolders[0].uri.path;
     }
     directory_path = configuration.get("folderPath") || directory_path;
-    // マーカー設定
-    const header_marker = configuration.get("mainMarker") || "# -- main block -- #";
-    const footer_marker = configuration.get("testMarker") || "# -- test block -- #";
-    const from_marker = configuration.get("fromMarker") || "# -- tmp From -- #";
-    const to_marker = configuration.get("toMarker") || "# -- tmp To -- #";
-    ;
-    const comment_marker = configuration.get("commentMarker") || "# == ";
-    const line_marker = configuration.get("lineMarker") || "# ---- ";
+    const profile = getLanguageProfile(configuration, extension);
+    const markers = getMarkers(configuration, extension);
     // vscode.window.showInformationMessage(directory_path);
-    const filenames = await retrieveFilenames(directory_path); // 変換対象のファイルをリスト化する
+    // 拡張子が一致するファイルをリスト化する
+    const supportedExtensions = profile ? profile.extensions : [normalizeExtension(extension)];
+    const filenames = await retrieveFilenames(directory_path, supportedExtensions);
+    if (filenames.length === 0) {
+        vscode.window.showInformationMessage(`対象の拡張子 (${supportedExtensions.join(', ')}) のファイルが見つかりません`);
+        return;
+    }
     // ファイル選択
     const item = await vscode.window.showQuickPick(filenames, { placeHolder: 'Please Select an item', canPickMany: false });
     // ファイル読み込み
@@ -118,58 +180,51 @@ async function insertSnippet() {
     const blob = await vscode.workspace.fs.readFile(vscode.Uri.file(filepath));
     // テキストへ変換
     let text = Buffer.from(blob).toString(); // デフォルトはutf-8
-    text = removeUntilMarker(text, header_marker);
-    text = removeFromMarker(text, footer_marker);
+    // ヘッダーとフッターのマーカーを取り除く
+    text = removeUntilMarker(text, markers.main);
+    text = removeFromMarker(text, markers.test);
     // 途中のテストコードも取り除く : 初期設定 # -- tmp From -- #
-    text = removeBetweenMarkers(text, from_marker, to_marker);
+    text = removeBetweenMarkers(text, markers.from, markers.to);
     // 途中のコード行ごと取り除きたいもの : 初期設定 # ----
-    text = removeLinesWithMarker(text, line_marker); // 行ごと削除
+    text = removeLinesWithMarker(text, markers.line); // 行ごと削除
     console.log(text);
     // コメント部分だけを取り除きたいもの : 初期設定 # ==
-    text = removeFromMarkerToEndOfLine(text, comment_marker); // 削除コメント
+    text = removeFromMarkerToEndOfLine(text, markers.comment); // 削除コメント
     console.log(text);
-    insert(text);
+    insert(text, editor);
 }
 function insertMainMarker() {
-    // マーカーを挿入する
-    // 0. 設定の読み込み
     const configuration = vscode.workspace.getConfiguration("codeboost");
-    // 1. 自分で設定した MainMarker を取得する
-    const header_marker = configuration.get("mainMarker") || "# -- main block -- #";
-    // 2. MainMarker を挿入する
-    insert(header_marker); // カーソル位置に挿入する関数
+    const editor = vscode.window.activeTextEditor;
+    const markers = getMarkers(configuration, editor ? (0, path_1.extname)(editor.document.fileName) : undefined);
+    insert(markers.main, editor);
 }
 function insertTestMarker() {
-    // テストマーカーを挿入する
-    // 0. 設定の読み込み
     const configuration = vscode.workspace.getConfiguration("codeboost");
-    // 1. 自分で設定した TestMarker を取得する
-    const footer_marker = configuration.get("testMarker") || "# -- test block -- #";
-    // 2. TestMarker を挿入する
-    insert(footer_marker); // カーソル位置に挿入する関数
+    const editor = vscode.window.activeTextEditor;
+    const markers = getMarkers(configuration, editor ? (0, path_1.extname)(editor.document.fileName) : undefined);
+    insert(markers.test, editor);
 }
 function insertLineMarker() {
-    // 行マーカーを挿入する
     const configuration = vscode.workspace.getConfiguration("codeboost");
-    const line_marker = configuration.get("lineMarker") || "# ---- ";
-    insert(line_marker); // カーソル位置に挿入する関数
+    const editor = vscode.window.activeTextEditor;
+    const markers = getMarkers(configuration, editor ? (0, path_1.extname)(editor.document.fileName) : undefined);
+    insert(markers.line, editor);
 }
 function insertCommentMarker() {
-    // コメントマーカーを挿入する
     const configuration = vscode.workspace.getConfiguration("codeboost");
-    const comment_marker = configuration.get("CommentMarker") || "# == ";
-    insert(comment_marker); // カーソル位置に挿入する関数
+    const editor = vscode.window.activeTextEditor;
+    const markers = getMarkers(configuration, editor ? (0, path_1.extname)(editor.document.fileName) : undefined);
+    insert(markers.comment, editor);
 }
 function insertFromToMarker() {
-    // 行マーカーを挿入する
     const configuration = vscode.workspace.getConfiguration("codeboost");
-    const from_marker = configuration.get("FromMarker") || "# -- tmp From -- #";
-    const to_marker = configuration.get("ToMarker") || "# -- tmp To -- #";
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
         vscode.window.showErrorMessage('エディタが開かれていません');
         return;
     }
+    const markers = getMarkers(configuration, (0, path_1.extname)(editor.document.fileName));
     const selection = editor.selection;
     if (selection.isEmpty) {
         vscode.window.showErrorMessage('範囲が選択されていません\nSelection is empty');
@@ -179,9 +234,9 @@ function insertFromToMarker() {
         const startLine = selection.start.line;
         const endLine = selection.end.line;
         // 選択範囲の1行下に [END] を挿入（ズレ防止に先に挿入する）
-        editBuilder.insert(new vscode.Position(endLine + 1, 0), to_marker + '\n');
+        editBuilder.insert(new vscode.Position(endLine + 1, 0), markers.to + '\n');
         // 選択範囲の1行上に [START] を挿入
-        editBuilder.insert(new vscode.Position(startLine, 0), from_marker + '\n');
+        editBuilder.insert(new vscode.Position(startLine, 0), markers.from + '\n');
     });
 }
 function activate(context) {
